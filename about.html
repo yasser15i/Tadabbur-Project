@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عن الموقع | تدبر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005e2a;
+            --bg-color: #f8f4e9;
+            --text-color: #333;
+            --font-family: 'Tajawal', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .about-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .about-section h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .about-section p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #004620;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="about-section">
+            <h1>عن موقع تدبر</h1>
+            <p>
+                موقع تدبر هو منصة إسلامية تهدف إلى خدمة كتاب الله تعالى وتيسير تلاوته وحفظه وفهم معانيه للمسلمين في جميع أنحاء العالم.
+            </p>
+            <p>
+                نسعى من خلال هذا الموقع إلى توفير تجربة سهلة وممتعة لقراءة القرآن الكريم والاستماع إلى تلاواته من خلال نخبة من أشهر القراء.
+            </p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>تلاوات عطرة</h3>
+                    <p>استمع إلى تلاوات القرآن الكريم بأصوات أشهر القراء</p>
+                </div>
+                <div class="feature-card">
+                    <h3>سهولة الاستخدام</h3>
+                    <p>واجهة سهلة وبسيطة تناسب جميع المستخدمين</p>
+                </div>
+                <div class="feature-card">
+                    <h3>جودة عالية</h3>
+                    <p>تسجيلات صوتية عالية الجودة</p>
+                </div>
+            </div>
+
+            <a href="index.html" class="back-btn">العودة للرئيسية</a>
+        </div>
+    </div>
+</body>
+</html>

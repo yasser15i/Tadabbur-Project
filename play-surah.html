@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استماع السورة | تدبر</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005e2a;
+            --secondary-color: #ffd700;
+            --bg-color: #f8f4e9;
+            --text-color: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Amiri', serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+        }
+
+        .home-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 94, 42, 0.2);
+        }
+
+        .home-btn:hover {
+            background: #004620;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 94, 42, 0.3);
+        }
+
+        .player-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 800px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-color);
+        }
+
+        .surah-title {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .reciter-name {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 30px 0;
+            height: 50px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .nav-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 94, 42, 0.2);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #004620;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 94, 42, 0.3);
+        }
+
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .player-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .surah-title {
+                font-size: 2rem;
+            }
+
+            .reciter-name {
+                font-size: 1.2rem;
+            }
+
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-nav">
+            <a href="index.html" class="home-btn">الرئيسية</a>
+            <button onclick="history.back()" class="home-btn">رجوع</button>
+        </div>
+
+        <div class="player-container">
+            <h1 class="surah-title" id="surahTitle">جاري التحميل...</h1>
+            <h2 class="reciter-name" id="reciterName">جاري التحميل...</h2>
+            
+            <audio id="audioPlayer" controls class="audio-player">
+                <source src="" type="audio/mpeg">
+                متصفحك لا يدعم تشغيل الصوت
+            </audio>
+
+            <div class="navigation">
+                <button id="prevSurah" class="nav-btn">السورة السابقة</button>
+                <button id="nextSurah" class="nav-btn">السورة التالية</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const recitersMap = {
+            'hudhaify': {
+                name: 'الشيخ علي الحذيفي',
+                server: 'https://download.quranicaudio.com/quran/huthayfi'
+            },
+            'sudais': {
+                name: 'الشيخ عبد الرحمن السديس',
+                server: 'https://download.quranicaudio.com/quran/abdurrahmaan_as-sudays'
+            },
+            'shuraim': {
+                name: 'الشيخ سعود الشريم',
+                server: 'https://download.quranicaudio.com/quran/sa3ood_al-shuraym'
+            },
+            'dosary': {
+                name: 'الشيخ ياسر الدوسري',
+                server: 'https://download.quranicaudio.com/quran/yasser_ad-dussary'
+            },
+            'ayyub': {
+                name: 'الشيخ محمد أيوب',
+                server: 'https://download.quranicaudio.com/quran/muhammad_ayyoob'
+            },
+            'basfar': {
+                name: 'الشيخ عبدالله بصفر',
+                server: 'https://download.quranicaudio.com/quran/abdullah_basfar'
+            },
+            'qahtani': {
+                name: 'الشيخ خالد القحطاني',
+                server: 'https://download.quranicaudio.com/quran/khaalid_al-qahtaanee'
+            }
+        };
+
+        // إضافة مصفوفة السور
+        const surahs = [
+            {number: 1, name: "سورة الفاتحة", versesCount: 7},
+            {number: 2, name: "سورة البقرة", versesCount: 286},
+            {number: 3, name: "سورة آل عمران", versesCount: 200},
+            {number: 4, name: "سورة النساء", versesCount: 176},
+            {number: 5, name: "سورة المائدة", versesCount: 120},
+            {number: 6, name: "سورة الأنعام", versesCount: 165},
+            {number: 7, name: "سورة الأعراف", versesCount: 206},
+            {number: 8, name: "سورة الأنفال", versesCount: 75},
+            {number: 9, name: "سورة التوبة", versesCount: 129},
+            {number: 10, name: "سورة يونس", versesCount: 109},
+            {number: 11, name: "سورة هود", versesCount: 123},
+            {number: 12, name: "سورة يوسف", versesCount: 111},
+            {number: 13, name: "سورة الرعد", versesCount: 43},
+            {number: 14, name: "سورة إبراهيم", versesCount: 52},
+            {number: 15, name: "سورة الحجر", versesCount: 99},
+            {number: 16, name: "سورة النحل", versesCount: 128},
+            {number: 17, name: "سورة الإسراء", versesCount: 111},
+            {number: 18, name: "سورة الكهف", versesCount: 110},
+            {number: 19, name: "سورة مريم", versesCount: 98},
+            {number: 20, name: "سورة طه", versesCount: 135},
+            {number: 21, name: "سورة الأنبياء", versesCount: 112},
+            {number: 22, name: "سورة الحج", versesCount: 78},
+            {number: 23, name: "سورة المؤمنون", versesCount: 118},
+            {number: 24, name: "سورة النور", versesCount: 64},
+            {number: 25, name: "سورة الفرقان", versesCount: 77},
+            {number: 26, name: "سورة الشعراء", versesCount: 227},
+            {number: 27, name: "سورة النمل", versesCount: 93},
+            {number: 28, name: "سورة القصص", versesCount: 88},
+            {number: 29, name: "سورة العنكبوت", versesCount: 69},
+            {number: 30, name: "سورة الروم", versesCount: 60},
+            {number: 31, name: "سورة لقمان", versesCount: 34},
+            {number: 32, name: "سورة السجدة", versesCount: 30},
+            {number: 33, name: "سورة الأحزاب", versesCount: 73},
+            {number: 34, name: "سورة سبأ", versesCount: 54},
+            {number: 35, name: "سورة فاطر", versesCount: 45},
+            {number: 36, name: "سورة يس", versesCount: 83},
+            {number: 37, name: "سورة الصافات", versesCount: 182},
+            {number: 38, name: "سورة ص", versesCount: 88},
+            {number: 39, name: "سورة الزمر", versesCount: 75},
+            {number: 40, name: "سورة غافر", versesCount: 85},
+            {number: 41, name: "سورة فصلت", versesCount: 54},
+            {number: 42, name: "سورة الشورى", versesCount: 53},
+            {number: 43, name: "سورة الزخرف", versesCount: 89},
+            {number: 44, name: "سورة الدخان", versesCount: 59},
+            {number: 45, name: "سورة الجاثية", versesCount: 37},
+            {number: 46, name: "سورة الأحقاف", versesCount: 35},
+            {number: 47, name: "سورة محمد", versesCount: 38},
+            {number: 48, name: "سورة الفتح", versesCount: 29},
+            {number: 49, name: "سورة الحجرات", versesCount: 18},
+            {number: 50, name: "سورة ق", versesCount: 45},
+            {number: 51, name: "سورة الذاريات", versesCount: 60},
+            {number: 52, name: "سورة الطور", versesCount: 49},
+            {number: 53, name: "سورة النجم", versesCount: 62},
+            {number: 54, name: "سورة القمر", versesCount: 55},
+            {number: 55, name: "سورة الرحمن", versesCount: 78},
+            {number: 56, name: "سورة الواقعة", versesCount: 96},
+            {number: 57, name: "سورة الحديد", versesCount: 29},
+            {number: 58, name: "سورة المجادلة", versesCount: 22},
+            {number: 59, name: "سورة الحشر", versesCount: 24},
+            {number: 60, name: "سورة الممتحنة", versesCount: 13},
+            {number: 61, name: "سورة الصف", versesCount: 14},
+            {number: 62, name: "سورة الجمعة", versesCount: 11},
+            {number: 63, name: "سورة المنافقون", versesCount: 11},
+            {number: 64, name: "سورة التغابن", versesCount: 18},
+            {number: 65, name: "سورة الطلاق", versesCount: 12},
+            {number: 66, name: "سورة التحريم", versesCount: 12},
+            {number: 67, name: "سورة الملك", versesCount: 30},
+            {number: 68, name: "سورة القلم", versesCount: 52},
+            {number: 69, name: "سورة الحاقة", versesCount: 52},
+            {number: 70, name: "سورة المعارج", versesCount: 44},
+            {number: 71, name: "سورة نوح", versesCount: 28},
+            {number: 72, name: "سورة الجن", versesCount: 28},
+            {number: 73, name: "سورة المزمل", versesCount: 20},
+            {number: 74, name: "سورة المدثر", versesCount: 56},
+            {number: 75, name: "سورة القيامة", versesCount: 40},
+            {number: 76, name: "سورة الإنسان", versesCount: 31},
+            {number: 77, name: "سورة المرسلات", versesCount: 50},
+            {number: 78, name: "سورة النبأ", versesCount: 40},
+            {number: 79, name: "سورة النازعات", versesCount: 46},
+            {number: 80, name: "سورة عبس", versesCount: 42},
+            {number: 81, name: "سورة التكوير", versesCount: 29},
+            {number: 82, name: "سورة الانفطار", versesCount: 19},
+            {number: 83, name: "سورة المطففين", versesCount: 36},
+            {number: 84, name: "سورة الانشقاق", versesCount: 25},
+            {number: 85, name: "سورة البروج", versesCount: 22},
+            {number: 86, name: "سورة الطارق", versesCount: 17},
+            {number: 87, name: "سورة الأعلى", versesCount: 19},
+            {number: 88, name: "سورة الغاشية", versesCount: 26},
+            {number: 89, name: "سورة الفجر", versesCount: 30},
+            {number: 90, name: "سورة البلد", versesCount: 20},
+            {number: 91, name: "سورة الشمس", versesCount: 15},
+            {number: 92, name: "سورة الليل", versesCount: 21},
+            {number: 93, name: "سورة الضحى", versesCount: 11},
+            {number: 94, name: "سورة الشرح", versesCount: 8},
+            {number: 95, name: "سورة التين", versesCount: 8},
+            {number: 96, name: "سورة العلق", versesCount: 19},
+            {number: 97, name: "سورة القدر", versesCount: 5},
+            {number: 98, name: "سورة البينة", versesCount: 8},
+            {number: 99, name: "سورة الزلزلة", versesCount: 8},
+            {number: 100, name: "سورة العاديات", versesCount: 11},
+            {number: 101, name: "سورة القارعة", versesCount: 11},
+            {number: 102, name: "سورة التكاثر", versesCount: 8},
+            {number: 103, name: "سورة العصر", versesCount: 3},
+            {number: 104, name: "سورة الهمزة", versesCount: 9},
+            {number: 105, name: "سورة الفيل", versesCount: 5},
+            {number: 106, name: "سورة قريش", versesCount: 4},
+            {number: 107, name: "سورة الماعون", versesCount: 7},
+            {number: 108, name: "سورة الكوثر", versesCount: 3},
+            {number: 109, name: "سورة الكافرون", versesCount: 6},
+            {number: 110, name: "سورة النصر", versesCount: 3},
+            {number: 111, name: "سورة المسد", versesCount: 5},
+            {number: 112, name: "سورة الإخلاص", versesCount: 4},
+            {number: 113, name: "سورة الفلق", versesCount: 5},
+            {number: 114, name: "سورة الناس", versesCount: 6}
+        ];
+
+        function initializePlayer() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reciterId = urlParams.get('reciter');
+            const surahNumber = parseInt(urlParams.get('surah'));
+            
+            const reciter = recitersMap[reciterId];
+            const surah = surahs.find(s => s.number === surahNumber);
+
+            if (!reciter || !surah) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // تحديث عنوان الصفحة
+            document.title = `${surah.name} - ${reciter.name} | تدبر`;
+            
+            // تحديث عناوين السورة والقارئ مباشرة
+            const surahTitle = document.getElementById('surahTitle');
+            const reciterName = document.getElementById('reciterName');
+            
+            surahTitle.textContent = surah.name;
+            reciterName.textContent = reciter.name;
+
+            // إعداد مشغل الصوت
+            const audioPlayer = document.getElementById('audioPlayer');
+            const formattedSurahNumber = String(surahNumber).padStart(3, '0');
+            audioPlayer.src = `${reciter.server}/${formattedSurahNumber}.mp3`;
+
+            // إعداد أزرار التنقل
+            const prevBtn = document.getElementById('prevSurah');
+            const nextBtn = document.getElementById('nextSurah');
+
+            prevBtn.disabled = surahNumber <= 1;
+            nextBtn.disabled = surahNumber >= 114;
+
+            // تحديث وظائف الأزرار
+            prevBtn.onclick = () => {
+                if (surahNumber > 1) {
+                    const prevSurah = surahs.find(s => s.number === surahNumber - 1);
+                    if (prevSurah) {
+                        window.location.href = `play-surah.html?reciter=${reciterId}&surah=${prevSurah.number}`;
+                    }
+                }
+            };
+
+            nextBtn.onclick = () => {
+                if (surahNumber < 114) {
+                    const nextSurah = surahs.find(s => s.number === surahNumber + 1);
+                    if (nextSurah) {
+                        window.location.href = `play-surah.html?reciter=${reciterId}&surah=${nextSurah.number}`;
+                    }
+                }
+            };
+
+            // تحسين معالجة الأخطاء
+            audioPlayer.onerror = () => {
+                alert(`عذراً، حدث خطأ في تحميل سورة ${surah.name}`);
+                console.error('Audio loading error:', audioPlayer.error);
+                // محاولة استخدام مصدر بديل
+                const backupServer = `https://verses.quran.com/arabic/${reciterId}/${formattedSurahNumber}.mp3`;
+                audioPlayer.src = backupServer;
+            };
+
+            // بدء التشغيل تلقائياً
+            audioPlayer.play().catch(err => {
+                console.log('Auto-play prevented:', err);
+            });
+        }
+
+        // تشغيل عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', initializePlayer);
+    </script>
+</body>
+</html>

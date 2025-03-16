@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قراءات | القرآن الكريم</title>
+    <style>
+        :root {
+            --primary-color: #005e2a;
+            --secondary-color: #ffd700;
+            --bg-color: #f8f4e9;
+            --text-color: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Amiri', serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .reciter-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .reciter-name {
+            font-size: 32px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .surahs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .surah-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .surah-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .surah-name {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .surah-number {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .play-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn:hover {
+            background: #004620;
+        }
+
+        .audio-player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 94, 42, 0.95);
+            padding: 15px;
+            display: none;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .audio-player.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .audio-info {
+            color: white;
+            text-align: center;
+        }
+
+        audio {
+            border-radius: 30px;
+            height: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .surahs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .surah-card {
+                padding: 15px;
+            }
+
+            .surah-name {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="reciter-header">
+            <h1 class="reciter-name" id="reciterName"></h1>
+        </div>
+        <div class="surahs-grid" id="surahsGrid"></div>
+    </div>
+
+    <div class="audio-player" id="audioPlayer">
+        <div class="audio-info">
+            <span id="currentlyPlaying"></span>
+        </div>
+        <audio id="audioElement" controls></audio>
+    </div>
+
+    <script>
+        const reciters = {
+            'basit': {
+                name: 'عبد الباسط عبد الصمد',
+                baseUrl: 'https://server8.mp3quran.net/basit/'
+            },
+            'minsh': {
+                name: 'محمد صديق المنشاوي',
+                baseUrl: 'https://server10.mp3quran.net/minsh/'
+            }
+            // ... إضافة باقي القراء
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const reciterId = urlParams.get('id');
+        const reciter = reciters[reciterId];
+
+        if (!reciter) {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('reciterName').textContent = reciter.name;
+        document.title = `قراءات ${reciter.name} | القرآن الكريم`;
+
+        // تحميل السور
+        const surahsGrid = document.getElementById('surahsGrid');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioElement = document.getElementById('audioElement');
+        const currentlyPlaying = document.getElementById('currentlyPlaying');
+
+        async function loadSurahs() {
+            const response = await fetch('https://api.alquran.cloud/v1/surah');
+            const data = await response.json();
+            const surahs = data.data;
+
+            surahs.forEach(surah => {
+                const surahCard = document.createElement('div');
+                surahCard.className = 'surah-card';
+                surahCard.innerHTML = `
+                    <div class="surah-name">${surah.name}</div>
+                    <div class="surah-number">سورة رقم ${surah.number}</div>
+                    <button class="play-btn" data-surah="${surah.number.toString().padStart(3, '0')}">
+                        استمع
+                    </button>
+                `;
+                surahsGrid.appendChild(surahCard);
+            });
+
+            // إضافة وظيفة التشغيل
+            document.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const surahNumber = this.dataset.surah;
+                    const audioUrl = `${reciter.baseUrl}${surahNumber}.mp3`;
+                    audioElement.src = audioUrl;
+                    audioElement.play();
+                    audioPlayer.classList.add('active');
+                    currentlyPlaying.textContent = `جاري تشغيل: ${this.parentElement.querySelector('.surah-name').textContent}`;
+                });
+            });
+        }
+
+        loadSurahs();
+    </script>
+</body>
+</html>

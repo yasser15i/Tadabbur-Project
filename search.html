@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>البحث | تدبر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #005e2a;
+            --bg-color: #f8f4e9;
+            --text-color: #333;
+            --font-family: 'Tajawal', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .search-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid var(--primary-color);
+            border-radius: 30px;
+            font-size: 18px;
+            background: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+
+        .search-results {
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .result-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .result-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid rgba(0, 94, 42, 0.1);
+        }
+
+        .result-item:hover {
+            background: rgba(0, 94, 42, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 10px rgba(0, 94, 42, 0.1);
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #004620;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-right"></i> العودة للرئيسية
+        </a>
+        
+        <div class="search-header">
+            <h1>البحث في تدبر</h1>
+        </div>
+
+        <div class="search-box">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput"
+                   placeholder="ابحث في السور، القراء..."
+                   autocomplete="off">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <div class="result-section" id="surahResults">
+                <h2>السور</h2>
+                <div class="results-list"></div>
+            </div>
+            
+            <div class="result-section" id="reciterResults">
+                <h2>القراء</h2>
+                <div class="results-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const surahResultsList = document.querySelector('#surahResults .results-list');
+        const reciterResultsList = document.querySelector('#reciterResults .results-list');
+
+        // تحميل بيانات السور والقراء من الملفات الرئيسية
+        const surahs = [
+            {number: 1, name: "سورة الفاتحة", versesCount: 7},
+            {number: 2, name: "سورة البقرة", versesCount: 286},
+            {number: 3, name: "سورة آل عمران", versesCount: 200},
+            {number: 4, name: "سورة النساء", versesCount: 176},
+            {number: 5, name: "سورة المائدة", versesCount: 120},
+            {number: 6, name: "سورة الأنعام", versesCount: 165},
+            {number: 7, name: "سورة الأعراف", versesCount: 206},
+            {number: 8, name: "سورة الأنفال", versesCount: 75},
+            {number: 9, name: "سورة التوبة", versesCount: 129},
+            {number: 10, name: "سورة يونس", versesCount: 109},
+            {number: 11, name: "سورة هود", versesCount: 123},
+            {number: 12, name: "سورة يوسف", versesCount: 111},
+            {number: 13, name: "سورة الرعد", versesCount: 43},
+            {number: 14, name: "سورة إبراهيم", versesCount: 52},
+            {number: 15, name: "سورة الحجر", versesCount: 99},
+            {number: 16, name: "سورة النحل", versesCount: 128},
+            {number: 17, name: "سورة الإسراء", versesCount: 111},
+            {number: 18, name: "سورة الكهف", versesCount: 110},
+            {number: 19, name: "سورة مريم", versesCount: 98},
+            {number: 20, name: "سورة طه", versesCount: 135},
+            {number: 21, name: "سورة الأنبياء", versesCount: 112},
+            {number: 22, name: "سورة الحج", versesCount: 78},
+            {number: 23, name: "سورة المؤمنون", versesCount: 118},
+            {number: 24, name: "سورة النور", versesCount: 64},
+            {number: 25, name: "سورة الفرقان", versesCount: 77},
+            {number: 26, name: "سورة الشعراء", versesCount: 227},
+            {number: 27, name: "سورة النمل", versesCount: 93},
+            {number: 28, name: "سورة القصص", versesCount: 88},
+            {number: 29, name: "سورة العنكبوت", versesCount: 69},
+            {number: 30, name: "سورة الروم", versesCount: 60},
+            {number: 31, name: "سورة لقمان", versesCount: 34},
+            {number: 32, name: "سورة السجدة", versesCount: 30},
+            {number: 33, name: "سورة الأحزاب", versesCount: 73},
+            {number: 34, name: "سورة سبأ", versesCount: 54},
+            {number: 35, name: "سورة فاطر", versesCount: 45},
+            {number: 36, name: "سورة يس", versesCount: 83},
+            {number: 37, name: "سورة الصافات", versesCount: 182},
+            {number: 38, name: "سورة ص", versesCount: 88},
+            {number: 39, name: "سورة الزمر", versesCount: 75},
+            {number: 40, name: "سورة غافر", versesCount: 85},
+            {number: 41, name: "سورة فصلت", versesCount: 54},
+            {number: 42, name: "سورة الشورى", versesCount: 53},
+            {number: 43, name: "سورة الزخرف", versesCount: 89},
+            {number: 44, name: "سورة الدخان", versesCount: 59},
+            {number: 45, name: "سورة الجاثية", versesCount: 37},
+            {number: 46, name: "سورة الأحقاف", versesCount: 35},
+            {number: 47, name: "سورة محمد", versesCount: 38},
+            {number: 48, name: "سورة الفتح", versesCount: 29},
+            {number: 49, name: "سورة الحجرات", versesCount: 18},
+            {number: 50, name: "سورة ق", versesCount: 45},
+            {number: 51, name: "سورة الذاريات", versesCount: 60},
+            {number: 52, name: "سورة الطور", versesCount: 49},
+            {number: 53, name: "سورة النجم", versesCount: 62},
+            {number: 54, name: "سورة القمر", versesCount: 55},
+            {number: 55, name: "سورة الرحمن", versesCount: 78},
+            {number: 56, name: "سورة الواقعة", versesCount: 96},
+            {number: 57, name: "سورة الحديد", versesCount: 29},
+            {number: 58, name: "سورة المجادلة", versesCount: 22},
+            {number: 59, name: "سورة الحشر", versesCount: 24},
+            {number: 60, name: "سورة الممتحنة", versesCount: 13},
+            {number: 61, name: "سورة الصف", versesCount: 14},
+            {number: 62, name: "سورة الجمعة", versesCount: 11},
+            {number: 63, name: "سورة المنافقون", versesCount: 11},
+            {number: 64, name: "سورة التغابن", versesCount: 18},
+            {number: 65, name: "سورة الطلاق", versesCount: 12},
+            {number: 66, name: "سورة التحريم", versesCount: 12},
+            {number: 67, name: "سورة الملك", versesCount: 30},
+            {number: 68, name: "سورة القلم", versesCount: 52},
+            {number: 69, name: "سورة الحاقة", versesCount: 52},
+            {number: 70, name: "سورة المعارج", versesCount: 44},
+            {number: 71, name: "سورة نوح", versesCount: 28},
+            {number: 72, name: "سورة الجن", versesCount: 28},
+            {number: 73, name: "سورة المزمل", versesCount: 20},
+            {number: 74, name: "سورة المدثر", versesCount: 56},
+            {number: 75, name: "سورة القيامة", versesCount: 40},
+            {number: 76, name: "سورة الإنسان", versesCount: 31},
+            {number: 77, name: "سورة المرسلات", versesCount: 50},
+            {number: 78, name: "سورة النبأ", versesCount: 40},
+            {number: 79, name: "سورة النازعات", versesCount: 46},
+            {number: 80, name: "سورة عبس", versesCount: 42},
+            {number: 81, name: "سورة التكوير", versesCount: 29},
+            {number: 82, name: "سورة الانفطار", versesCount: 19},
+            {number: 83, name: "سورة المطففين", versesCount: 36},
+            {number: 84, name: "سورة الانشقاق", versesCount: 25},
+            {number: 85, name: "سورة البروج", versesCount: 22},
+            {number: 86, name: "سورة الطارق", versesCount: 17},
+            {number: 87, name: "سورة الأعلى", versesCount: 19},
+            {number: 88, name: "سورة الغاشية", versesCount: 26},
+            {number: 89, name: "سورة الفجر", versesCount: 30},
+            {number: 90, name: "سورة البلد", versesCount: 20},
+            {number: 91, name: "سورة الشمس", versesCount: 15},
+            {number: 92, name: "سورة الليل", versesCount: 21},
+            {number: 93, name: "سورة الضحى", versesCount: 11},
+            {number: 94, name: "سورة الشرح", versesCount: 8},
+            {number: 95, name: "سورة التين", versesCount: 8},
+            {number: 96, name: "سورة العلق", versesCount: 19},
+            {number: 97, name: "سورة القدر", versesCount: 5},
+            {number: 98, name: "سورة البينة", versesCount: 8},
+            {number: 99, name: "سورة الزلزلة", versesCount: 8},
+            {number: 100, name: "سورة العاديات", versesCount: 11},
+            {number: 101, name: "سورة القارعة", versesCount: 11},
+            {number: 102, name: "سورة التكاثر", versesCount: 8},
+            {number: 103, name: "سورة العصر", versesCount: 3},
+            {number: 104, name: "سورة الهمزة", versesCount: 9},
+            {number: 105, name: "سورة الفيل", versesCount: 5},
+            {number: 106, name: "سورة قريش", versesCount: 4},
+            {number: 107, name: "سورة الماعون", versesCount: 7},
+            {number: 108, name: "سورة الكوثر", versesCount: 3},
+            {number: 109, name: "سورة الكافرون", versesCount: 6},
+            {number: 110, name: "سورة النصر", versesCount: 3},
+            {number: 111, name: "سورة المسد", versesCount: 5},
+            {number: 112, name: "سورة الإخلاص", versesCount: 4},
+            {number: 113, name: "سورة الفلق", versesCount: 5},
+            {number: 114, name: "سورة الناس", versesCount: 6}
+        ];
+
+        const reciters = {
+            'hudhaify': 'الشيخ علي الحذيفي',
+            'sudais': 'الشيخ عبد الرحمن السديس',
+            'shuraim': 'الشيخ سعود الشريم',
+            'dosary': 'الشيخ ياسر الدوسري',
+            'ayyub': 'الشيخ محمد أيوب',
+            'basfar': 'الشيخ عبدالله بصفر',
+            'qahtani': 'الشيخ خالد القحطاني'
+        };
+
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.trim().toLowerCase();
+            
+            // بحث في السور
+            const surahResults = surahs.filter(surah => 
+                surah.name.toLowerCase().includes(searchTerm) || 
+                surah.number.toString().includes(searchTerm)
+            ).slice(0, 10); // عرض أول 10 نتائج فقط للأداء الأفضل
+
+            // بحث في القراء
+            const reciterResults = Object.entries(reciters).filter(([id, name]) => 
+                name.toLowerCase().includes(searchTerm)
+            );
+
+            // عرض النتائج
+            displayResults(surahResults, reciterResults);
+
+            // إظهار/إخفاء أقسام النتائج
+            document.getElementById('surahResults').style.display = 
+                surahResults.length ? 'block' : 'none';
+            document.getElementById('reciterResults').style.display = 
+                reciterResults.length ? 'block' : 'none';
+        });
+
+        function displayResults(surahs, reciters) {
+            // عرض نتائج السور
+            surahResultsList.innerHTML = surahs.map(surah => `
+                <div class="result-item" onclick="window.location.href='surah.html?id=${surah.number}'">
+                    <div class="result-title">
+                        <strong>${surah.name}</strong>
+                    </div>
+                    <div class="result-meta">
+                        <span class="surah-number">رقم السورة: ${surah.number}</span>
+                        <span class="verses-count">${surah.versesCount} آية</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // عرض نتائج القراء
+            reciterResultsList.innerHTML = reciters.map(([id, name]) => `
+                <div class="result-item" onclick="window.location.href='surah-list.html?reciter=${id}'">
+                    <div class="result-title">
+                        <strong>${name}</strong>
+                    </div>
+                </div>
+            `).join('');
+
+            // عرض رسالة إذا لم توجد نتائج
+            if (!surahs.length && !reciters.length) {
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>لا توجد نتائج للبحث</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
